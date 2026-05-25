@@ -50,6 +50,15 @@ RUN set -eux; \
     setcap cap_net_raw+eip /bin/ping || setcap cap_net_raw+eip /usr/bin/ping; \
     setcap cap_net_raw+eip /usr/bin/traceroute || true
 
+# Install kubectl into the hermes user's PATH so the agent can manage the
+# cluster via its mounted ServiceAccount token.
+RUN set -eux; \
+    ARCH="$(dpkg --print-architecture)"; \
+    STABLE="$(curl -fsSL https://dl.k8s.io/release/stable.txt)"; \
+    curl -fsSL "https://dl.k8s.io/release/${STABLE}/bin/linux/${ARCH}/kubectl" \
+         -o /usr/local/bin/kubectl; \
+    chmod 0755 /usr/local/bin/kubectl
+
 # Hand control back to the upstream entrypoint, which still starts as root
 # and gosu-drops to the hermes user.
 USER root

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hermes-agent-bootstrap
+  namespace: hermes
+  labels:
+    {{- include "hermes.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    {{- .Values.config | toYaml | nindent 4 }}
+  SOUL.md: |
+    {{- .Values.soul | nindent 4 }}

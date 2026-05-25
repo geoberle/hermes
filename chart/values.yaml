@@ -1,0 +1,56 @@
+image:
+  repository: ghcr.io/geoberle/hermes
+  # tag defaults to Chart.appVersion (set by CI to the git SHA)
+  tag: ""
+  pullPolicy: Always
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: "2"
+    memory: 4Gi
+
+persistence:
+  size: 5Gi
+  storageClass: local-path
+
+dashboard:
+  enabled: true
+  host: "0.0.0.0"
+  port: 9119
+
+config:
+  model:
+    default: claude-opus-4.7
+    provider: lmstudio
+    base_url: http://litellm.litellm.svc.cluster.local:4000
+  agent:
+    max_turns: 90
+    gateway_timeout: 1800
+    restart_drain_timeout: 60
+    tool_use_enforcement: auto
+  terminal:
+    backend: local
+    cwd: .
+    timeout: 180
+  display:
+    tool_progress: all
+    interim_assistant_messages: true
+  browser:
+    inactivity_timeout: 120
+    command_timeout: 30
+    allow_private_urls: false
+  compression:
+    enabled: true
+    threshold: 0.5
+    target_ratio: 0.2
+    protect_last_n: 20
+  security:
+    redact_secrets: true
+    tirith_enabled: true
+    tirith_fail_open: true
+
+soul: |
+  You are Hermes — a helpful agent.

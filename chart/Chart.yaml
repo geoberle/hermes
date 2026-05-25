@@ -1,0 +1,6 @@
+apiVersion: v2
+name: hermes
+description: Hermes agent for the Hermine homelab
+version: 0.1.0
+appVersion: "20260518"
+type: application

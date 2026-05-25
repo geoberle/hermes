@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - Dockerfile
+      - chart/**
       - .github/workflows/build.yml
   workflow_dispatch:
   schedule:
@@ -60,3 +61,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
+
+      - name: Package and push Helm chart
+        run: |
+          IMAGE_TAG="sha-${{ github.sha }}"
+          sed -i "s/^appVersion:.*/appVersion: \"${IMAGE_TAG}\"/" chart/Chart.yaml
+          helm package chart/
+          helm push hermes-*.tgz oci://${{ env.REGISTRY }}/geoberle
