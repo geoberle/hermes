@@ -40,6 +40,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Compute version tags
+        id: vars
+        run: |
+          TS="$(date -u +%Y%m%d%H%M%S)"
+          echo "ts=${TS}" >> "$GITHUB_OUTPUT"
+          echo "tag=0.1.0-${TS}" >> "$GITHUB_OUTPUT"
+
       - name: Compute image metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -47,8 +54,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,format=long
-            type=schedule,pattern={{date 'YYYYMMDD'}}
+            type=raw,value=${{ steps.vars.outputs.tag }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -64,8 +70,9 @@ jobs:
 
       - name: Package and push Helm chart
         run: |
-          IMAGE_TAG="sha-${{ github.sha }}"
-          sed -i "s/^appVersion:.*/appVersion: \"${IMAGE_TAG}\"/" chart/Chart.yaml
+          TAG="${{ steps.vars.outputs.tag }}"
+          sed -i "s/^version:.*/version: ${TAG}/" chart/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${TAG}\"/" chart/Chart.yaml
           helm dependency build chart/
           helm package chart/
           helm push hermes-chart-*.tgz oci://${{ env.REGISTRY }}/geoberle
