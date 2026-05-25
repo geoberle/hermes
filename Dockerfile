@@ -19,6 +19,7 @@ USER root
 #   dnsutils      — dig / nslookup for DNS recon
 #   iputils-ping  — ping (the base image may not have it)
 #   traceroute    — path discovery
+#   jq            — JSON processing from the shell
 #   ca-certificates — keep CA bundle fresh after the apt run
 #
 # After install we grant cap_net_raw + cap_net_admin as *file* capabilities on
@@ -39,6 +40,7 @@ RUN set -eux; \
         dnsutils \
         iputils-ping \
         traceroute \
+        jq \
         libcap2-bin \
         ca-certificates; \
     rm -rf /var/lib/apt/lists/*; \
@@ -50,14 +52,18 @@ RUN set -eux; \
     setcap cap_net_raw+eip /bin/ping || setcap cap_net_raw+eip /usr/bin/ping; \
     setcap cap_net_raw+eip /usr/bin/traceroute || true
 
-# Install kubectl into the hermes user's PATH so the agent can manage the
-# cluster via its mounted ServiceAccount token.
+# Install standalone binaries into the hermes user's PATH.
+#   kubectl — cluster management via mounted ServiceAccount token
+#   yq      — YAML processing from the shell
 RUN set -eux; \
     ARCH="$(dpkg --print-architecture)"; \
     STABLE="$(curl -fsSL https://dl.k8s.io/release/stable.txt)"; \
     curl -fsSL "https://dl.k8s.io/release/${STABLE}/bin/linux/${ARCH}/kubectl" \
          -o /usr/local/bin/kubectl; \
-    chmod 0755 /usr/local/bin/kubectl
+    chmod 0755 /usr/local/bin/kubectl; \
+    curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${ARCH}" \
+         -o /usr/local/bin/yq; \
+    chmod 0755 /usr/local/bin/yq
 
 # Hand control back to the upstream entrypoint, which still starts as root
 # and gosu-drops to the hermes user.

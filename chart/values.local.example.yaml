@@ -1,5 +1,0 @@
-secrets:
-  TELEGRAM_BOT_TOKEN: "CHANGE_ME"
-  GATEWAY_ALLOWED_USERS: "CHANGE_ME"
-  LM_API_KEY: "CHANGE_ME"
-  LM_BASE_URL: "http://litellm.litellm.svc.cluster.local:4000"

@@ -1,2 +1,3 @@
 chart/values.local.yaml
+chart/charts/
 .vscode

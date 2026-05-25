@@ -4,3 +4,9 @@ description: Hermes agent for the Hermine homelab
 version: 0.1.0
 appVersion: "20260518"
 type: application
+
+dependencies:
+  - name: litellm-helm
+    alias: litellm
+    version: ">=1.85.0"
+    repository: "oci://ghcr.io/berriai"

@@ -23,9 +23,9 @@ dashboard:
 
 config:
   model:
-    default: claude-opus-4.7
+    default: ""
     provider: lmstudio
-    base_url: http://litellm.litellm.svc.cluster.local:4000
+    base_url: http://litellm:4000
   agent:
     max_turns: 90
     gateway_timeout: 1800
@@ -52,5 +52,47 @@ config:
     tirith_enabled: true
     tirith_fail_open: true
 
+secrets:
+  TELEGRAM_BOT_TOKEN: "CHANGE_ME"
+  GATEWAY_ALLOWED_USERS: "CHANGE_ME"
+  LM_API_KEY: "CHANGE_ME"
+
 soul: |
   You are Hermes — a helpful agent.
+
+# --- LiteLLM subchart ---
+litellm:
+  masterkey: CHANGE_ME
+
+  proxy_config:
+    model_list:
+      - model_name: your-model-name
+        litellm_params:
+          model: provider/model-id
+          api_key: os.environ/PROVIDER_API_KEY
+
+    general_settings:
+      master_key: os.environ/PROXY_MASTER_KEY
+      database_url: os.environ/DATABASE_URL
+
+  envVars:
+    LITELLM_SALT_KEY: CHANGE_ME
+    PROVIDER_API_KEY: CHANGE_ME
+
+  db:
+    deployStandalone: true
+
+  postgresql:
+    architecture: standalone
+    image:
+      tag: latest
+    auth:
+      username: litellm
+      database: litellm
+      password: litellm-db-pass
+      postgres-password: litellm-db-pass
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 200m
