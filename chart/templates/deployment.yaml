@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hermes-agent
+  namespace: hermes
+  labels:
+    {{- include "hermes.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "hermes.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "hermes.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: agent
+      annotations:
+        checksum/bootstrap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: hermes
+      automountServiceAccountToken: true
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      terminationGracePeriodSeconds: 120
+      securityContext:
+        fsGroup: 10000
+        fsGroupChangePolicy: OnRootMismatch
+
+      initContainers:
+        - name: bootstrap-config
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/bin/sh", "-ec"]
+          args:
+            - |
+              set -eu
+              mkdir -p /opt/data/home
+              if [ -f /bootstrap/config.yaml ]; then
+                cp /bootstrap/config.yaml /opt/data/config.yaml
+                echo "wrote config.yaml"
+              fi
+              if [ -f /bootstrap/SOUL.md ]; then
+                cp /bootstrap/SOUL.md /opt/data/SOUL.md
+                echo "wrote SOUL.md"
+              fi
+              chown -R 10000:10000 /opt/data 2>/dev/null || true
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+            - name: bootstrap
+              mountPath: /bootstrap
+              readOnly: true
+
+      containers:
+        - name: hermes-agent
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["gateway", "run"]
+          workingDir: /opt/hermes
+          securityContext:
+            capabilities:
+              add:
+                - NET_RAW
+                - NET_ADMIN
+          env:
+            - name: HERMES_HOME
+              value: /opt/data
+            - name: HERMES_UID
+              value: "10000"
+            - name: HERMES_GID
+              value: "10000"
+            {{- if .Values.dashboard.enabled }}
+            - name: HERMES_DASHBOARD
+              value: "1"
+            - name: HERMES_DASHBOARD_HOST
+              value: {{ .Values.dashboard.host | quote }}
+            - name: HERMES_DASHBOARD_PORT
+              value: {{ .Values.dashboard.port | quote }}
+            {{- end }}
+            - name: GATEWAY_ALLOW_ALL_USERS
+              value: "false"
+          envFrom:
+            - secretRef:
+                name: hermes-agent-secrets
+          {{- if .Values.dashboard.enabled }}
+          ports:
+            - name: dashboard
+              containerPort: {{ .Values.dashboard.port }}
+              hostPort: {{ .Values.dashboard.port }}
+              protocol: TCP
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+            - name: tmp
+              mountPath: /tmp
+            - name: dshm
+              mountPath: /dev/shm
+
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: hermes-agent-data
+        - name: bootstrap
+          configMap:
+            name: hermes-agent-bootstrap
+        - name: tmp
+          emptyDir: {}
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi
