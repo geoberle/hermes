@@ -55,7 +55,6 @@ config:
 secrets:
   TELEGRAM_BOT_TOKEN: "CHANGE_ME"
   GATEWAY_ALLOWED_USERS: "CHANGE_ME"
-  LM_API_KEY: "CHANGE_ME"
 
 soul: |
   You are Hermes — a helpful agent.

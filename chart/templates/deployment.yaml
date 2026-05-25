@@ -81,6 +81,8 @@ spec:
             - name: HERMES_DASHBOARD_PORT
               value: {{ .Values.dashboard.port | quote }}
             {{- end }}
+            - name: LM_API_KEY
+              value: {{ .Values.litellm.masterkey | quote }}
             - name: GATEWAY_ALLOW_ALL_USERS
               value: "false"
           envFrom:
