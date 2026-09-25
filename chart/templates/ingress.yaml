@@ -6,8 +6,16 @@ metadata:
   namespace: hermes
   labels:
     {{- include "hermes.labels" . | nindent 4 }}
+  {{- with .Values.dashboard.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   ingressClassName: {{ .Values.dashboard.ingress.ingressClassName }}
+  {{- with .Values.dashboard.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   rules:
     - host: {{ required "dashboard.ingress.host is required when dashboard.ingress.enabled is true" .Values.dashboard.ingress.host }}
       http:

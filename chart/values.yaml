@@ -24,6 +24,8 @@ dashboard:
     enabled: false
     host: ""
     ingressClassName: traefik
+    annotations: {}
+    tls: []
 
 config:
   model:
