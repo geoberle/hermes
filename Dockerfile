@@ -3,7 +3,7 @@
 # Base image: nousresearch/hermes-agent:main pinned by multi-arch digest
 # (matches what deploy/k8s/deployment.yaml currently uses).
 # Bump the digest when you want a newer Hermes; rebuild this image; redeploy.
-FROM nousresearch/hermes-agent@sha256:6caccd4dc14b07c9bdaa63c0b6589264c423c0ddebc195458124bc9ed0448603
+FROM nousresearch/hermes-agent@sha256:83ba2ca4f4d2277eb78f058613557bf453100f3c820952465c288b9a6fe46f02
 
 # The upstream image runs its entrypoint as root and gosu-drops to UID 10000.
 # We need to be root here to apt-install and to setcap on the binaries.
